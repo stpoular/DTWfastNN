@@ -1,31 +1,34 @@
 ## DTWfastNN
 This code shows an example of performing Dynamic Time Warping using the tree-based fast Nearest Neighbor algorithm of Katsavounidis et al. [1].
-[1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor encoding for vector quantization. IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
+[1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor encoding for vector quantization. 
+IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
 
 ## How to control the demo program
-The demo program (main.c) demonstrates a possible scenario of using the DTW API, focusing on estimation of execution speedups over the standard Full Search algorithm (brute force) and an ideal initialization method, where the true NN is assumed as known in advance.
+The demo program (main.c) demonstrates a possible scenario of using the DTW API, focusing on estimation of execution speedups over 
+the standard Full Search algorithm (brute force) and an ideal initialization method, where the true NN is assumed as known in advance.
 <br />
-Some demo options can be controlled by command line parameters, containing information about training/testing data and profiling parameters. The usage scenario is as:
-** DTWfastNN [training_dataset_name] [query_dataset_name] [LOOP_ITERATIONS] [TARGET_NUMBER_OF_EXAMPLES] [NUM_OF_EXPERIMENT_ITERATIONS]
-** where LOOP_ITERATIONS denotes the number of DTW searches for each query sequence (to guarantee 
-** time measurement stability), TARGET_NUMBER_OF_EXAMPLES is the number of training examples per user 
-** per gesture and NUM_OF_EXPERIMENT_ITERATIONS is the number of experiment repetitions
-** (to guarantee robustness of the time measurement process).
-**
-** The dataset parameters are controlled by the file dataset_info.info. The dataset filenames
-** correspond to the pattern data_[UserID]_[GestureID]_[ExampleID]
-**
-** This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAMPLES].csv) showing the:
-** 1. total number of additions (totalAdds)
-** 2. total number of subtractions (totalSubs)
-** 3. total number of multiplications (totalMuls)
-** 4. total number of query searches performed (totalSearches)
-** 5. total number of training examples in each search (numTrainingExamples)
-** 6. total number of DTW computations (totalDTWcomputations)
-** 7. total execution time of all DTW searches (timeDTW)
-** 8. total execution time of fastNN initialization (timeInitFastNN)
-** For example, after executing: digits6D_gestures digits6D_gestures 1 2 1 we get:
-** 7620000 7680000 7680000 600 100 60000 60 10.0
+Some demo options can be controlled by command line parameters, containing information about training/testing data and profiling parameters. 
+<br /><br />
+The usage scenario is as:<br />
+DTWfastNN [training_dataset_name] [query_dataset_name] [LOOP_ITERATIONS] [TARGET_NUMBER_OF_EXAMPLES] [NUM_OF_EXPERIMENT_ITERATIONS]
+<br />
+where LOOP_ITERATIONS denotes the number of DTW searches for each query sequence (to guarantee time measurement stability), 
+TARGET_NUMBER_OF_EXAMPLES is the number of training examples per user per gesture and NUM_OF_EXPERIMENT_ITERATIONS is the number of experiment 
+repetitions (to guarantee robustness of the time measurement process).
+<br />
+The dataset parameters are controlled by the file dataset_info.info. The dataset filenames correspond to the pattern data_[UserID]_[GestureID]_[ExampleID]
+<br />
+This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAMPLES].csv) showing the:<br />
+1. total number of additions (totalAdds)<br />
+2. total number of subtractions (totalSubs)<br />
+3. total number of multiplications (totalMuls)<br />
+4. total number of query searches performed (totalSearches)<br />
+5. total number of training examples in each search (numTrainingExamples)<br />
+6. total number of DTW computations (totalDTWcomputations)<br />
+7. total execution time of all DTW searches (timeDTW)<br />
+8. total execution time of fastNN initialization (timeInitFastNN)<br />
+For example, after executing: digits6D_gestures digits6D_gestures 1 2 1 we get:<br />
+7620000 7680000 7680000 600 100 60000 60 10.0<br />
 ** where we notice that the 7680000 multiplications correspond to 600 query searches and 100 training examples,
 ** i.e. 128 multiplications per computation. Since the gestures are of dimension 8x2,
 ** each DTW computation occupies 8x8=64 cells of 2 multiplications each, which corresponds
