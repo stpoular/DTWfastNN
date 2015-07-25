@@ -76,31 +76,27 @@ To run the demo, you will need to download an example dataset: https://www.dropb
 
 
 ## C API for fastNN
-Step 1. FastNN structure initialization <br/>
-** void NN_initialization_fastNN(MY_DOUBLE *clusters, int num_of_clusters, int dim, struct node **out_root, struct context **out_storage); <br/>
-** ** clusters: matrix of training data, containing num_of_clusters row vectors of dimension dim <br/>
-** ** out_root: root of the constructed binary tree <br/>
-** ** out_storage: auxiliary memory storage <br/>
-** ****************************************************************************************************** <br/>
-** Step 2.a. FastNN search (exact search) <br/>
-** ** int nn_findNN_fastNN(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance); <br/>
-** ** Assumes root and storage already created by NN_initialization_fastNN . <br/>
-** ** flag_print_info can be set to 1 for debugging purposes. <br/>
-** ** Returns the index corresponding to the NN of query_vector, as well as the corresponding Euclidean distance (min_distance). <br/>
-** ****************************************************************************************************** <br/>
-** Step 2.b. FastNN search (Depth only search -- DOS, approximate search) <br/>
-** ** int nn_findNN_fastNN_depth_only(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance); <br/>
-** ** Performs a fastNN search, returning the training vector found in the first leaf node. <br/>
-** ** Input/Output similar to exact search. <br/>
-** ****************************************************************************************************** <br/>
-** Step 2.d. Full search (Standard brute-force algorithm, examining all training examples) <br/>
-** ** int nn_findNN_full_search(MY_DOUBLE *query_vector, MY_DOUBLE *training_vectors, int num_of_training_vectors, int dim, double *min_distance); <br/>
-** ** Performs a standard brute-force algorithm, examining all training examples. This version is useful
-** ** for correctness verification and as a reference to estimate execution speedups. <br/>
-** ****************************************************************************************************** <br/>
-** Step 3. Free all fastNN memory <br/>
-** ** void NN_free_memory_fastNN(struct node **root, struct context **storage); <br/>
-** ****************************************************************************************************** <br/>
+- **Step 1. FastNN structure initialization** <br/>
+- void NN_initialization_fastNN(MY_DOUBLE *clusters, int num_of_clusters, int dim, struct node **out_root, struct context **out_storage); <br/>
+- clusters: matrix of training data, containing num_of_clusters row vectors of dimension dim <br/>
+- out_root: root of the constructed binary tree <br/>
+- out_storage: auxiliary memory storage <br/>
+**Step 2.a. FastNN search (exact search)** <br/>
+- int nn_findNN_fastNN(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance); <br/>
+- Assumes root and storage already created by NN_initialization_fastNN . <br/>
+- flag_print_info can be set to 1 for debugging purposes. <br/>
+- Returns the index corresponding to the NN of query_vector, as well as the corresponding Euclidean distance (min_distance). <br/>
+**Step 2.b. FastNN search (Depth only search -- DOS, approximate search)** <br/>
+- int nn_findNN_fastNN_depth_only(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance); <br/>
+- Performs a fastNN search, returning the training vector found in the first leaf node. <br/>
+- Input/Output similar to exact search. <br/>
+<br/>
+**Step 2.d. Full search (Standard brute-force algorithm, examining all training examples)** <br/>
+- int nn_findNN_full_search(MY_DOUBLE *query_vector, MY_DOUBLE *training_vectors, int num_of_training_vectors, int dim, double *min_distance); <br/>
+- Performs a standard brute-force algorithm, examining all training examples. This version is useful
+- for correctness verification and as a reference to estimate execution speedups. <br/>
+**Step 3. Free all fastNN memory** <br/>
+- void NN_free_memory_fastNN(struct node **root, struct context **storage); <br/>
 
 ## License
 This code is provided "as is", please use it at your own risk. You can freely use this code for research purposes, citing [1]. <br/>
