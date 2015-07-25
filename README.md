@@ -1,3 +1,82 @@
+## DTWfastNN
+This code shows an example of performing Dynamic Time Warping using the tree-based fast Nearest Neighbor algorithm of Katsavounidis et al. [1].
+[1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor encoding for vector quantization. IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
+
+## How to control the demo program
+The demo program (main.c) demonstrates a possible scenario of using the DTW API, focusing on estimation of execution speedups over the standard Full Search algorithm (brute force) and an ideal initialization method, where the true NN is assumed as known in advance.
+<br />
+Some demo options can be controlled by command line parameters, containing information about training/testing data and profiling parameters. The usage scenario is as:
+** DTWfastNN [training_dataset_name] [query_dataset_name] [LOOP_ITERATIONS] [TARGET_NUMBER_OF_EXAMPLES] [NUM_OF_EXPERIMENT_ITERATIONS]
+** where LOOP_ITERATIONS denotes the number of DTW searches for each query sequence (to guarantee 
+** time measurement stability), TARGET_NUMBER_OF_EXAMPLES is the number of training examples per user 
+** per gesture and NUM_OF_EXPERIMENT_ITERATIONS is the number of experiment repetitions
+** (to guarantee robustness of the time measurement process).
+**
+** The dataset parameters are controlled by the file dataset_info.info. The dataset filenames
+** correspond to the pattern data_[UserID]_[GestureID]_[ExampleID]
+**
+** This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAMPLES].csv) showing the:
+** 1. total number of additions (totalAdds)
+** 2. total number of subtractions (totalSubs)
+** 3. total number of multiplications (totalMuls)
+** 4. total number of query searches performed (totalSearches)
+** 5. total number of training examples in each search (numTrainingExamples)
+** 6. total number of DTW computations (totalDTWcomputations)
+** 7. total execution time of all DTW searches (timeDTW)
+** 8. total execution time of fastNN initialization (timeInitFastNN)
+** For example, after executing: digits6D_gestures digits6D_gestures 1 2 1 we get:
+** 7620000 7680000 7680000 600 100 60000 60 10.0
+** where we notice that the 7680000 multiplications correspond to 600 query searches and 100 training examples,
+** i.e. 128 multiplications per computation. Since the gestures are of dimension 8x2,
+** each DTW computation occupies 8x8=64 cells of 2 multiplications each, which corresponds
+** to the case of the FullSearch DTW scheme.
+** On the other hand, when running the same experiment for the fastNN initialization DTW scheme, 
+** we get: 1119076 1132144 1155631 600 100 1324 10 0.0
+** i.e. 19.26 multiplications per computation (which is a significant improvement).
+**
+** The main function of the demo is: void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations);
+** in which one can choose the desired DTW search scheme (lines 138-158 in file dtw_full.c)
+**
+** To run the demo, you will need to download an example dataset: https://www.dropbox.com/s/gu4jgyp4wzngur1/digits6D_gestures.zip?dl=0
+**
+
+
+** This code is provided "as is", please use it at your own risk.
+** You can freely use this code for research purposes, citing [1].
+**
+** [1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor
+** encoding for vector quantization. IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
+At the top of the file there should be a short introduction and/ or overview that explains **what** the project is. This description should match descriptions added for package managers (Gemspec, package.json, etc.)
+
+
+
+Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
+
+## Motivation
+
+A short description of the motivation behind the creation and maintenance of the project. This should explain **why** the project exists.
+
+## Installation
+
+Provide code examples and explanations of how to get the project.
+
+## API Reference
+
+Depending on the size of the project, if it is small and simple enough the reference docs can be added to the README. For medium size to larger projects it is important to at least provide a link to where the API reference docs live.
+
+## Tests
+
+Describe and show how to run the tests with code examples.
+
+## Contributors
+
+Let people know how they can dive into the project, include important links to things like issue trackers, irc, twitter accounts if applicable.
+
+## License
+
+A short snippet describing the license (MIT, Apache, etc.)
+
+
 # DTWfastNN
 *********************************************************************************************************
 *********************************************************************************************************
