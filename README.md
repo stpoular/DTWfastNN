@@ -1,7 +1,13 @@
-## DTWfastNN
+## DTWfastNN: Dynamic Time Warping (DTW) using Tree-based fast Nearest Neighbor (fastNN)
 This code shows an example of performing Dynamic Time Warping using the tree-based fast Nearest Neighbor algorithm of Katsavounidis et al. [1].
 [1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor encoding for vector quantization. 
 IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
+
+This code was jointly written by Stergios Poularakis (stpoular@inf.uth.gr) and
+Prof. Ioannis Katsavounidis (ioannis.k@inf.uth.gr), VideoTeam, University of Thessaly, Greece. <br\>
+For further information please contact Prof. Ioannis Katsavounidis. <br\>
+Volos, November 2014 <br\> <br\>
+
 
 ## How to control the demo program
 The demo program (main.c) demonstrates a possible scenario of using the DTW API, focusing on estimation of execution speedups over 
@@ -29,187 +35,75 @@ This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAM
 8. total execution time of fastNN initialization (timeInitFastNN)<br />
 For example, after executing: digits6D_gestures digits6D_gestures 1 2 1 we get:<br />
 7620000 7680000 7680000 600 100 60000 60 10.0<br />
-** where we notice that the 7680000 multiplications correspond to 600 query searches and 100 training examples,
-** i.e. 128 multiplications per computation. Since the gestures are of dimension 8x2,
-** each DTW computation occupies 8x8=64 cells of 2 multiplications each, which corresponds
-** to the case of the FullSearch DTW scheme.
-** On the other hand, when running the same experiment for the fastNN initialization DTW scheme, 
-** we get: 1119076 1132144 1155631 600 100 1324 10 0.0
-** i.e. 19.26 multiplications per computation (which is a significant improvement).
-**
-** The main function of the demo is: void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations);
-** in which one can choose the desired DTW search scheme (lines 138-158 in file dtw_full.c)
-**
-** To run the demo, you will need to download an example dataset: https://www.dropbox.com/s/gu4jgyp4wzngur1/digits6D_gestures.zip?dl=0
-**
+where we notice that the 7680000 multiplications correspond to 600 query searches and 100 training examples,
+i.e. 128 multiplications per computation. Since the gestures are of dimension 8x2,
+each DTW computation occupies 8x8=64 cells of 2 multiplications each, which corresponds
+to the case of the FullSearch DTW scheme. <br />
+On the other hand, when running the same experiment for the fastNN initialization DTW scheme, 
+we get: 1119076 1132144 1155631 600 100 1324 10 0.0
+i.e. 19.26 multiplications per computation (which is a significant improvement).
+<br /><br />
+The main function of the demo is: <br />
+void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations);
+<br />
+in which one can choose the desired DTW search scheme (lines 138-158 in file dtw_full.c) <br />
+To run the demo, you will need to download an example dataset: https://www.dropbox.com/s/gu4jgyp4wzngur1/digits6D_gestures.zip?dl=0
 
 
-** This code is provided "as is", please use it at your own risk.
-** You can freely use this code for research purposes, citing [1].
-**
-** [1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor
-** encoding for vector quantization. IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
-At the top of the file there should be a short introduction and/ or overview that explains **what** the project is. This description should match descriptions added for package managers (Gemspec, package.json, etc.)
+## C API for DTW
+** Step 1. DTW structure initialization for LB Keogh <br/>
+** ** void create_L_U_signals_multi(MY_DOUBLE *q, int num_of_points, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U); <br/>
+** ** void create_L_U_signals(MY_DOUBLE *q, int num_of_points, int curr_dim, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U); <br/>
+** ** max_dim: dimension of each sequence data point (currently only max_dim=2 is supported) <br/>
+** ** Computes L and U signals for query sequence q. This operation is useful when LB Keogh is used. <br/>
+** ****************************************************************************************************** <br/> <br/>
+** Step 2.a. DTW search (full search - brute force) <br/>
+** ** int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance); <br/>
+** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
+** ****************************************************************************************************** <br/>
+** Step 2.b. DTW search (full search - Sakoe Chiba band) <br/>
+** ** int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r) <br/>
+** ** r: the Sakoe Chiba band parameter <br/>
+** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
+** ** Uses Sakoe Chiba band to reduce the cost of each DTW computation. <br/>
+** ****************************************************************************************************** <br/>
+** Step 2.c. DTW search (partial search - Sakoe Chiba band - LB Keogh) <br/>
+** ** int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, struct paired *all_LBKeoghs); <br/>
+** ** r: the Sakoe Chiba band parameter <br/>
+** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
+** ** Uses Sakoe Chiba band to reduce the cost of each DTW computation. <br/>
+** ** Uses the LB Keogh lower bound to perform partial search. <br/>
 
 
-
-Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
-
-## Motivation
-
-A short description of the motivation behind the creation and maintenance of the project. This should explain **why** the project exists.
-
-## Installation
-
-Provide code examples and explanations of how to get the project.
-
-## API Reference
-
-Depending on the size of the project, if it is small and simple enough the reference docs can be added to the README. For medium size to larger projects it is important to at least provide a link to where the API reference docs live.
-
-## Tests
-
-Describe and show how to run the tests with code examples.
-
-## Contributors
-
-Let people know how they can dive into the project, include important links to things like issue trackers, irc, twitter accounts if applicable.
+## C API for fastNN
+Step 1. FastNN structure initialization <br/>
+** void NN_initialization_fastNN(MY_DOUBLE *clusters, int num_of_clusters, int dim, struct node **out_root, struct context **out_storage); <br/>
+** ** clusters: matrix of training data, containing num_of_clusters row vectors of dimension dim <br/>
+** ** out_root: root of the constructed binary tree <br/>
+** ** out_storage: auxiliary memory storage <br/>
+** ****************************************************************************************************** <br/>
+** Step 2.a. FastNN search (exact search) <br/>
+** ** int nn_findNN_fastNN(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance); <br/>
+** ** Assumes root and storage already created by NN_initialization_fastNN . <br/>
+** ** flag_print_info can be set to 1 for debugging purposes. <br/>
+** ** Returns the index corresponding to the NN of query_vector, as well as the corresponding Euclidean distance (min_distance). <br/>
+** ****************************************************************************************************** <br/>
+** Step 2.b. FastNN search (Depth only search -- DOS, approximate search) <br/>
+** ** int nn_findNN_fastNN_depth_only(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance); <br/>
+** ** Performs a fastNN search, returning the training vector found in the first leaf node. <br/>
+** ** Input/Output similar to exact search. <br/>
+** ****************************************************************************************************** <br/>
+** Step 2.d. Full search (Standard brute-force algorithm, examining all training examples) <br/>
+** ** int nn_findNN_full_search(MY_DOUBLE *query_vector, MY_DOUBLE *training_vectors, int num_of_training_vectors, int dim, double *min_distance); <br/>
+** ** Performs a standard brute-force algorithm, examining all training examples. This version is useful
+** ** for correctness verification and as a reference to estimate execution speedups. <br/>
+** ****************************************************************************************************** <br/>
+** Step 3. Free all fastNN memory <br/>
+** ** void NN_free_memory_fastNN(struct node **root, struct context **storage); <br/>
+** ****************************************************************************************************** <br/>
 
 ## License
+This code is provided "as is", please use it at your own risk. You can freely use this code for research purposes, citing [1]. <br/>
+[1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor encoding for vector quantization. IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
 
-A short snippet describing the license (MIT, Apache, etc.)
 
-
-# DTWfastNN
-*********************************************************************************************************
-*********************************************************************************************************
-******************************** Dynamic Time Warping (DTW) *********************************************
-********************* using Tree-based fast Nearest Neighbor (fastNN) ***********************************
-******************************** Version: 0.4 ***********************************************************
-*********************************************************************************************************
-*********************************************************************************************************
-**
-** This code shows an example of performing Dynamic Time Warping using the tree-based fast Nearest Neighbor
-** algorithm of Katsavounidis et al. [1].
-** This code is provided "as is", please use it at your own risk.
-** You can freely use this code for research purposes, citing [1].
-**
-** [1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor
-** encoding for vector quantization. IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
-**
-*********************************************************************************************************
-*********************************************************************************************************
-**
-** This code was jointly written by Stergios Poularakis (stpoular@inf.uth.gr) and
-** Prof. Ioannis Katsavounidis (ioannis.k@inf.uth.gr), VideoTeam, University of Thessaly, Greece.
-** For further information please contact Prof. Ioannis Katsavounidis.
-** Volos, November 2014
-**
-**
-*********************************************************************************************************
-*********************************************************************************************************
-************************************** C API for DTW *************************************************
-*********************************************************************************************************
-** Step 1. DTW structure initialization for LB Keogh
-** ** void create_L_U_signals_multi(MY_DOUBLE *q, int num_of_points, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U);
-** ** void create_L_U_signals(MY_DOUBLE *q, int num_of_points, int curr_dim, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U);
-** ** max_dim: dimension of each sequence data point (currently only max_dim=2 is supported)
-** ** Computes L and U signals for query sequence q. This operation is useful when LB Keogh is used.
-** ******************************************************************************************************
-** Step 2.a. DTW search (full search - brute force)
-** ** int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance);
-** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance).
-** ******************************************************************************************************
-** Step 2.b. DTW search (full search - Sakoe Chiba band)
-** ** int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r)
-** ** r: the Sakoe Chiba band parameter
-** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance).
-** ** Uses Sakoe Chiba band to reduce the cost of each DTW computation.
-** ******************************************************************************************************
-** Step 2.c. DTW search (partial search - Sakoe Chiba band - LB Keogh)
-** ** int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, struct paired *all_LBKeoghs);
-** ** r: the Sakoe Chiba band parameter
-** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance).
-** ** Uses Sakoe Chiba band to reduce the cost of each DTW computation.
-** ** Uses the LB Keogh lower bound to perform partial search.
-** ******************************************************************************************************
-**
-**
-*********************************************************************************************************
-*********************************************************************************************************
-************************************** C API for fastNN *************************************************
-*********************************************************************************************************
-** Step 1. FastNN structure initialization
-** ** void NN_initialization_fastNN(MY_DOUBLE *clusters, int num_of_clusters, int dim, struct node **out_root, struct context **out_storage);
-** ** clusters: matrix of training data, containing num_of_clusters row vectors of dimension dim
-** ** out_root: root of the constructed binary tree
-** ** out_storage: auxiliary memory storage
-** ******************************************************************************************************
-** Step 2.a. FastNN search (exact search)
-** ** int nn_findNN_fastNN(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance);
-** ** Assumes root and storage already created by NN_initialization_fastNN .
-** ** flag_print_info can be set to 1 for debugging purposes.
-** ** Returns the index corresponding to the NN of query_vector, as well as the corresponding Euclidean distance (min_distance).
-** ******************************************************************************************************
-** Step 2.b. FastNN search (Depth only search -- DOS, approximate search)
-** ** int nn_findNN_fastNN_depth_only(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance);
-** ** Performs a fastNN search, returning the training vector found in the first leaf node.
-** ** Input/Output similar to exact search.
-** ******************************************************************************************************
-** Step 2.d. Full search (Standard brute-force algorithm, examining all training examples)
-** ** int nn_findNN_full_search(MY_DOUBLE *query_vector, MY_DOUBLE *training_vectors, int num_of_training_vectors, int dim, double *min_distance);
-** ** Performs a standard brute-force algorithm, examining all training examples. This version is useful
-** ** for correctness verification and as a reference to estimate execution speedups.
-** ******************************************************************************************************
-** Step 3. Free all fastNN memory
-** ** void NN_free_memory_fastNN(struct node **root, struct context **storage);
-** ******************************************************************************************************
-**
-**
-*********************************************************************************************************
-*********************************************************************************************************
-********************************** HOW TO CONTROL THE DEMO PROGRAM **************************************
-*********************************************************************************************************
-** The demo program (main.c) demonstrates a possible scenario of using the DTW API, focusing on 
-** estimation of execution speedups over the standard Full Search algorithm (brute force) and an ideal
-** initialization method, where the true NN is assumed as known in advance.
-**
-** Some demo options can be controlled by command line parameters, containing information about 
-** training/testing data and profiling parameters. The usage scenario is as:
-** DTWfastNN [training_dataset_name] [query_dataset_name] [LOOP_ITERATIONS] [TARGET_NUMBER_OF_EXAMPLES] [NUM_OF_EXPERIMENT_ITERATIONS]
-** where LOOP_ITERATIONS denotes the number of DTW searches for each query sequence (to guarantee 
-** time measurement stability), TARGET_NUMBER_OF_EXAMPLES is the number of training examples per user 
-** per gesture and NUM_OF_EXPERIMENT_ITERATIONS is the number of experiment repetitions
-** (to guarantee robustness of the time measurement process).
-**
-** The dataset parameters are controlled by the file dataset_info.info. The dataset filenames
-** correspond to the pattern data_[UserID]_[GestureID]_[ExampleID]
-**
-** This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAMPLES].csv) showing the:
-** 1. total number of additions (totalAdds)
-** 2. total number of subtractions (totalSubs)
-** 3. total number of multiplications (totalMuls)
-** 4. total number of query searches performed (totalSearches)
-** 5. total number of training examples in each search (numTrainingExamples)
-** 6. total number of DTW computations (totalDTWcomputations)
-** 7. total execution time of all DTW searches (timeDTW)
-** 8. total execution time of fastNN initialization (timeInitFastNN)
-** For example, after executing: digits6D_gestures digits6D_gestures 1 2 1 we get:
-** 7620000 7680000 7680000 600 100 60000 60 10.0
-** where we notice that the 7680000 multiplications correspond to 600 query searches and 100 training examples,
-** i.e. 128 multiplications per computation. Since the gestures are of dimension 8x2,
-** each DTW computation occupies 8x8=64 cells of 2 multiplications each, which corresponds
-** to the case of the FullSearch DTW scheme.
-** On the other hand, when running the same experiment for the fastNN initialization DTW scheme, 
-** we get: 1119076 1132144 1155631 600 100 1324 10 0.0
-** i.e. 19.26 multiplications per computation (which is a significant improvement).
-**
-** The main function of the demo is: void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations);
-** in which one can choose the desired DTW search scheme (lines 138-158 in file dtw_full.c)
-**
-** To run the demo, you will need to download an example dataset: https://www.dropbox.com/s/gu4jgyp4wzngur1/digits6D_gestures.zip?dl=0
-**
-*********************************************************************************************************
-*********************************************************************************************************
-*********************************************************************************************************
-*********************************************************************************************************
