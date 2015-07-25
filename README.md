@@ -15,16 +15,16 @@ the standard Full Search algorithm (brute force) and an ideal initialization met
 <br />
 Some demo options can be controlled by command line parameters, containing information about training/testing data and profiling parameters. 
 <br /><br />
-The usage scenario is as:<br />
+**The usage scenario is as:**<br />
 DTWfastNN [training_dataset_name] [query_dataset_name] [LOOP_ITERATIONS] [TARGET_NUMBER_OF_EXAMPLES] [NUM_OF_EXPERIMENT_ITERATIONS]
 <br />
 where LOOP_ITERATIONS denotes the number of DTW searches for each query sequence (to guarantee time measurement stability), 
 TARGET_NUMBER_OF_EXAMPLES is the number of training examples per user per gesture and NUM_OF_EXPERIMENT_ITERATIONS is the number of experiment 
 repetitions (to guarantee robustness of the time measurement process).
-<br />
+<br /><br />
 The dataset parameters are controlled by the file dataset_info.info. The dataset filenames correspond to the pattern data_[UserID]_[GestureID]_[ExampleID]
-<br />
-This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAMPLES].csv) showing the:<br />
+<br /><br />
+**This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAMPLES].csv) showing the:**<br />
 1. total number of additions (totalAdds)<br />
 2. total number of subtractions (totalSubs)<br />
 3. total number of multiplications (totalMuls)<br />
@@ -32,18 +32,18 @@ This program outputs a .csv file (DTW_fastNN_time_profile_[TARGET_NUMBER_OF_EXAM
 5. total number of training examples in each search (numTrainingExamples)<br />
 6. total number of DTW computations (totalDTWcomputations)<br />
 7. total execution time of all DTW searches (timeDTW)<br />
-8. total execution time of fastNN initialization (timeInitFastNN)<br />
+8. total execution time of fastNN initialization (timeInitFastNN)<br /><br />
 For example, after executing: digits6D_gestures digits6D_gestures 1 2 1 we get:<br />
 7620000 7680000 7680000 600 100 60000 60 10.0<br />
 where we notice that the 7680000 multiplications correspond to 600 query searches and 100 training examples,
 i.e. 128 multiplications per computation. Since the gestures are of dimension 8x2,
 each DTW computation occupies 8x8=64 cells of 2 multiplications each, which corresponds
-to the case of the FullSearch DTW scheme. <br />
+to the case of the FullSearch DTW scheme. <br /><br />
 On the other hand, when running the same experiment for the fastNN initialization DTW scheme, 
 we get: 1119076 1132144 1155631 600 100 1324 10 0.0
 i.e. 19.26 multiplications per computation (which is a significant improvement).
 <br /><br />
-The main function of the demo is: <br />
+**The main function of the demo is:** <br />
 void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations);
 <br />
 in which one can choose the desired DTW search scheme (lines 138-158 in file dtw_full.c) <br />
