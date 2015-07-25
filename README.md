@@ -1,11 +1,11 @@
 ## DTWfastNN: Dynamic Time Warping (DTW) using Tree-based fast Nearest Neighbor (fastNN)
-This code shows an example of performing Dynamic Time Warping using the tree-based fast Nearest Neighbor algorithm of Katsavounidis et al. [1].
+This code shows an example of performing Dynamic Time Warping using the tree-based fast Nearest Neighbor algorithm of Katsavounidis et al. [1].  <br/>
 [1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor encoding for vector quantization. 
 IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
 
 This code was jointly written by Stergios Poularakis (stpoular@inf.uth.gr) and
-Prof. Ioannis Katsavounidis (ioannis.k@inf.uth.gr), VideoTeam, University of Thessaly, Greece. <br\>
-For further information please contact Prof. Ioannis Katsavounidis. <br\>
+Prof. Ioannis Katsavounidis (ioannis.k@inf.uth.gr), VideoTeam, University of Thessaly, Greece. <br\> <br/>
+For further information please contact Prof. Ioannis Katsavounidis. <br\> <br/>
 Volos, November 2014 <br\> <br\>
 
 
@@ -56,7 +56,7 @@ To run the demo, you will need to download an example dataset: https://www.dropb
 ** ** void create_L_U_signals(MY_DOUBLE *q, int num_of_points, int curr_dim, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U); <br/>
 ** ** max_dim: dimension of each sequence data point (currently only max_dim=2 is supported) <br/>
 ** ** Computes L and U signals for query sequence q. This operation is useful when LB Keogh is used. <br/>
-** ****************************************************************************************************** <br/> <br/>
+** ****************************************************************************************************** <br/>
 ** Step 2.a. DTW search (full search - brute force) <br/>
 ** ** int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance); <br/>
 ** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
