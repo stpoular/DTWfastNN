@@ -58,21 +58,21 @@ To run the demo, you will need to download an example dataset: https://www.dropb
 - Computes L and U signals for query sequence q. This operation is useful when LB Keogh is used. <br/>
 <br/>
 **Step 2.a. DTW search (full search - brute force)** <br/>
-** ** int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance); <br/>
-** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
-** ****************************************************************************************************** <br/>
-** Step 2.b. DTW search (full search - Sakoe Chiba band) <br/>
-** ** int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r) <br/>
-** ** r: the Sakoe Chiba band parameter <br/>
-** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
-** ** Uses Sakoe Chiba band to reduce the cost of each DTW computation. <br/>
-** ****************************************************************************************************** <br/>
-** Step 2.c. DTW search (partial search - Sakoe Chiba band - LB Keogh) <br/>
-** ** int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, struct paired *all_LBKeoghs); <br/>
-** ** r: the Sakoe Chiba band parameter <br/>
-** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
-** ** Uses Sakoe Chiba band to reduce the cost of each DTW computation. <br/>
-** ** Uses the LB Keogh lower bound to perform partial search. <br/>
+- int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance); <br/>
+- Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
+<br/>
+**Step 2.b. DTW search (full search - Sakoe Chiba band)** <br/>
+- int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r) <br/>
+- r: the Sakoe Chiba band parameter <br/>
+- Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
+- Uses Sakoe Chiba band to reduce the cost of each DTW computation. <br/>
+<br/>
+**Step 2.c. DTW search (partial search - Sakoe Chiba band - LB Keogh)** <br/>
+- int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, struct paired *all_LBKeoghs); <br/>
+- r: the Sakoe Chiba band parameter <br/>
+- Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
+- Uses Sakoe Chiba band to reduce the cost of each DTW computation. <br/>
+- Uses the LB Keogh lower bound to perform partial search. <br/>
 
 
 ## C API for fastNN
