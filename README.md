@@ -9,7 +9,8 @@
 **
 ** This code shows an example of performing Dynamic Time Warping using the tree-based fast Nearest Neighbor
 ** algorithm of Katsavounidis et al. [1].
-** In case you use this code for research purposes, please cite [1].
+** This code is provided "as is", please use it at your own risk.
+** You can freely use this code for research purposes, citing [1].
 **
 ** [1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang. Fast tree-structured nearest neighbor
 ** encoding for vector quantization. IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996.
