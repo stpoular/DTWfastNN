@@ -51,13 +51,13 @@ To run the demo, you will need to download an example dataset: https://www.dropb
 
 
 ## C API for DTW
-** Step 1. DTW structure initialization for LB Keogh <br/>
-** ** void create_L_U_signals_multi(MY_DOUBLE *q, int num_of_points, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U); <br/>
-** ** void create_L_U_signals(MY_DOUBLE *q, int num_of_points, int curr_dim, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U); <br/>
-** ** max_dim: dimension of each sequence data point (currently only max_dim=2 is supported) <br/>
-** ** Computes L and U signals for query sequence q. This operation is useful when LB Keogh is used. <br/>
-** ****************************************************************************************************** <br/>
-** Step 2.a. DTW search (full search - brute force) <br/>
+**Step 1. DTW structure initialization for LB Keogh** <br/>
+- void create_L_U_signals_multi(MY_DOUBLE *q, int num_of_points, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U); <br/>
+- void create_L_U_signals(MY_DOUBLE *q, int num_of_points, int curr_dim, int max_dim, int r, MY_DOUBLE *L, MY_DOUBLE *U); <br/>
+- max_dim: dimension of each sequence data point (currently only max_dim=2 is supported) <br/>
+- Computes L and U signals for query sequence q. This operation is useful when LB Keogh is used. <br/>
+<br/>
+**Step 2.a. DTW search (full search - brute force)** <br/>
 ** ** int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance); <br/>
 ** ** Returns the index corresponding to the DTW--NN of query_vector, as well as the cost matrix and the corresponding DTW distance (min_distance). <br/>
 ** ****************************************************************************************************** <br/>
