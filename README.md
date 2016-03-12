@@ -16,11 +16,24 @@ the standard Full Search algorithm (brute force) and an ideal initialization met
 Some demo options can be controlled by command line parameters, containing information about training/testing data and profiling parameters. 
 <br /><br />
 **The usage scenario is as:**<br />
-DTWfastNN [training_dataset_name] [query_dataset_name] [LOOP_ITERATIONS] [TARGET_NUMBER_OF_EXAMPLES] [NUM_OF_EXPERIMENT_ITERATIONS]
+DTWfastNN [training_dataset_name] [query_dataset_name] [LOOP_ITERATIONS] [TARGET_NUMBER_OF_EXAMPLES] [NUM_OF_EXPERIMENT_ITERATIONS] [DIM] [METHOD_CHOOSER_ID]
 <br />
 where LOOP_ITERATIONS denotes the number of DTW searches for each query sequence (to guarantee time measurement stability), 
 TARGET_NUMBER_OF_EXAMPLES is the number of training examples per user per gesture and NUM_OF_EXPERIMENT_ITERATIONS is the number of experiment 
 repetitions (to guarantee robustness of the time measurement process).
+<br /> DIM is the dimensionality of each trajectory point.
+<br />
+METHOD_CHOOSER_ID selects the desired variation: 
+0. dtw_full_examples <br />
+1. dtw_full_sakoe_examples <br />
+2. dtw_full_sakoe_LB_Keogh_precomputed_examples <br />
+3. dtw8_fastNN_init_DOS_examples <br />
+4. dtw8_fastNN_init_examples <br />
+5. dtw8_ideal_init_examples <br />
+6. dtw8_fastNN_limited_init_examples <br />
+7. fastNN_examples <br />
+8. fastNN_DOS_examples <br />
+9. fastNN_limited_examples <br />
 <br /><br />
 The dataset parameters are controlled by the file dataset_info.info. The dataset filenames correspond to the pattern data_[UserID]_[GestureID]_[ExampleID]
 <br /><br />
