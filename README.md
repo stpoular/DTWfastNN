@@ -23,7 +23,7 @@ TARGET_NUMBER_OF_EXAMPLES is the number of training examples per user per gestur
 repetitions (to guarantee robustness of the time measurement process).
 <br /> DIM is the dimensionality of each trajectory point.
 <br />
-METHOD_CHOOSER_ID selects the desired variation: 
+METHOD_CHOOSER_ID selects the desired variation: <br />
 0. dtw_full_examples <br />
 1. dtw_full_sakoe_examples <br />
 2. dtw_full_sakoe_LB_Keogh_precomputed_examples <br />
