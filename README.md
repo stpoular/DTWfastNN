@@ -60,7 +60,11 @@ i.e. 19.26 multiplications per computation (which is a significant improvement).
 void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations);
 <br />
 in which one can choose the desired DTW search scheme (lines 138-158 in file dtw_full.c) <br />
-To run the demo, you will need to download an example dataset: https://www.dropbox.com/s/gu4jgyp4wzngur1/digits6D_gestures.zip?dl=0
+To run the demo, you will need to download some of the example datasets: <br />
+https://www.dropbox.com/s/950gbypkcwdbgaw/digits6D_gestures8.zip?dl=0  <br />
+https://www.dropbox.com/s/2umrehdn9x4gefd/lower6D_gestures8.zip?dl=0 <br />
+https://www.dropbox.com/s/n0qs2f1dezf3uc5/upper6D_gestures8.zip?dl=0 <br />
+https://www.dropbox.com/s/98sbxwpbooe17ht/character_trajectories16.zip?dl=0 <br />
 
 
 ## C API for DTW
