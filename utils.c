@@ -59,10 +59,12 @@ void read_data_from_file(char *data_folder, int *persons, int num_of_persons,  i
 
 		for(cat_id=1; cat_id<=num_of_categories; cat_id++)
 		{
+			//printf("%d: %d\n", person_id, cat_id);
 			for(example_id=1; example_id<=num_of_examples; example_id++)
 			{
 				sprintf(filename, "%s/data_%d_%d_%d.txt", data_folder, person_id, cat_id, example_id);
 				read_vector_from_file(filename, dim, dim2, data_vectors + i*dim2);
+				
 				class_labels[i] = cat_id;
 				i = i + 1;
 

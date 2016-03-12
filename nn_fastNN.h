@@ -28,11 +28,12 @@
 
 #define DTW_PROFILE
 
-#ifdef DTW_PROFILE
+//#ifdef DTW_PROFILE
 extern __int64 num_of_fastNN_adds;
 extern __int64 num_of_fastNN_subs;
 extern __int64 num_of_fastNN_muls;
-#endif
+extern int num_of_backtrackings;
+//#endif
 
 
 #ifndef _NN_FASTNN_H
@@ -89,9 +90,7 @@ int nn_findNN_fastNN(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *
 int nn_findNN_fastNN_depth_only(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance);
 int nn_findNN_full_search(MY_DOUBLE *query_vector, MY_DOUBLE *training_vectors, int num_of_training_vectors, int dim, double *min_distance);
 void NN_free_memory_fastNN(struct node **root, struct context **storage);
-
-
-
+int nn_findNN_fastNN_limited(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance, int TH_BACKTRACKINGS);
 
 /*************************************************************************************************
 **************************************************************************************************
@@ -103,8 +102,10 @@ void NN_free_memory_fastNN(struct node **root, struct context **storage);
 ************************ FastNN main functions for initialization and searching ******************
 *************************************************************************************************/
 void tree_structure(struct node *root, MY_DOUBLE *clusters, int dim, struct context *storage);
+int full_search_NN(MY_DOUBLE *vector, MY_DOUBLE *clusters, int num_training_vectors, int dim, MY_DOUBLE *min_dist2);
 int fast_NN(MY_DOUBLE *vector, struct node *root, MY_DOUBLE *clusters, int dim, MY_DOUBLE *min_dist2);
 int fast_NN_depth_only(MY_DOUBLE *vector, struct node *root, MY_DOUBLE *clusters, int dim, MY_DOUBLE *min_dist2);
+int fast_NN_limited(MY_DOUBLE *vector, struct node *root, MY_DOUBLE *clusters, int dim, MY_DOUBLE *min_dist2, int TH_BACKTRACKINGS);
 
 
 /*************************************************************************************************

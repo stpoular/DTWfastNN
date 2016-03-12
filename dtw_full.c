@@ -35,7 +35,6 @@
 #include "classification_analysis.h"
 #include "nn_fastNN.h"
 
-#define DTW_PROFILE
 
 __int64 num_of_adds = 0;
 __int64 num_of_subs = 0;
@@ -46,7 +45,7 @@ __int64 dtw_computations = 0;
 /*************************************************************************************************
 ****************************** DTW  demonstration function ***************************************
 *************************************************************************************************/
-void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations)
+void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num_of_training_vectors, MY_DOUBLE *query_vectors, int *query_labels, int num_of_query_vectors, int dim, int num_of_categories, int r, int *confusion_matrix, double *total_search_time, int LOOP_ITERATIONS, MY_DOUBLE *Ls, MY_DOUBLE *Us, double *fastNN_initialization_time, __int64 *total_num_of_adds, __int64 *total_num_of_subs, __int64 *total_num_of_muls, __int64 *total_dtw_computations, int DIM, int METHOD_CHOOSER_ID)
 {
 	int i;
 	int dim2 = ALIGN(dim,ALIGNMENT/sizeof(MY_DOUBLE));
@@ -58,7 +57,7 @@ void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num
 	double total_time = 0;
 	int P = 0;
 	double *Cost = NULL;
-	int num_of_points = dim/2;
+	int num_of_points = dim/DIM;
 
 	__int64 prev_num_of_adds;
 	__int64 prev_num_of_subs;
@@ -83,13 +82,6 @@ void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num
 		all_LBKeoghs[i].index = i;
 	}
 
-	///////////////////////////////////////////////////////////////////////////////////////
-	// Normalize data to unit vectors
-	training_vectors = my_normalize_matrix_rows(training_vectors, num_of_training_vectors, dim);
-	query_vectors = my_normalize_matrix_rows(query_vectors, num_of_query_vectors, dim);
-	///////////////////////////////////////////////////////////////////////////////////////
-
-
 	Cost = (double*)malloc(num_of_points*num_of_points*sizeof(double));
 	init_Cost_matrix(Cost, num_of_points);
 
@@ -103,9 +95,23 @@ void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num
 	prev_num_of_fastNN_subs = num_of_fastNN_subs;
 	prev_num_of_fastNN_muls = num_of_fastNN_muls;
 
+
+	/**fastNN_initialization_time = 0;
+	start_time = clock();
+	for (i = 0; i < 10; i++){
+		NN_initialization_fastNN(training_vectors, num_of_training_vectors, dim, &root, &storage);
+		NN_free_memory_fastNN(&root, &storage);
+	}
+	*fastNN_initialization_time += ((clock() - start_time));
+	printf("fastNN_initialization_time = %.2f\n", (*fastNN_initialization_time)/10);
+	*/
+
 	start_time = clock();
 	NN_initialization_fastNN(training_vectors, num_of_training_vectors, dim, &root, &storage);
 	*fastNN_initialization_time += ((clock() - start_time));
+
+
+	int TH_BACKTRACKINGS = (int)(0.25*num_of_training_vectors + 0.5);
 
 	num_of_adds = prev_num_of_adds;
 	num_of_subs = prev_num_of_subs;
@@ -124,7 +130,7 @@ void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num
 		prev_num_of_subs = num_of_subs;
 		prev_num_of_muls = num_of_muls;
 		prev_dtw_computations = dtw_computations;
-		initial_indx = dtw_search_sakoe(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r);
+		initial_indx = dtw_search_sakoe(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, DIM);
 		num_of_adds = prev_num_of_adds;
 		num_of_subs = prev_num_of_subs;
 		num_of_muls = prev_num_of_muls;
@@ -136,25 +142,68 @@ void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num
 		{
 			// Comment/Uncomment the following lines appropriately to switch between different DTW Search schemes
 
-			// DTW (full search)
-			//indx = dtw_search_full(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance);
+			//char *all_method_chooser_names[] = { "profile_dtw_full_examples", "profile_dtw_full_sakoe_examples", "profile_dtw_full_sakoe_LB_Keogh_precomputed_examples",
+			//	"profile_dtw8_fastNN_init_DOS_examples", "profile_dtw8_fastNN_init_examples", "profile_dtw8_ideal_init_examples", "profile_dtw8_fastNN_limited_init_examples" };
 			
-			// DTW Sakoe
-			//indx = dtw_search_sakoe(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r);
-			
-			// DTW Sakoe and LB Keogh
-			//indx = dtw_search_sakoe_LB_Keogh(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, all_LBKeoghs);
-			
-			// fastNN initialization
-			initial_indx = nn_findNN_fastNN(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance);
-			indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs);
-			
-			// DOS initialization
-			//initial_indx = nn_findNN_fastNN_depth_only(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance);
-			//indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs);
-			
-			// Ideal initialization
-			//indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs);
+			/*int indx0 = dtw_search_sakoe_LB_Keogh(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, all_LBKeoghs, DIM);
+			initial_indx = nn_findNN_fastNN_depth_only(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance);
+			int indx1 = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs, DIM);
+			int indx2 = dtw_search_sakoe(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, DIM);
+			if (indx0 != indx1){
+				printf("error...!");
+			}
+			if (indx0 != indx2){
+				printf("error...!");
+			}*/
+
+			switch (METHOD_CHOOSER_ID){
+			case 0:
+				// DTW (full search)
+				indx = dtw_search_full(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, DIM);
+				break;
+			case 1:
+				// DTW Sakoe
+				indx = dtw_search_sakoe(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, DIM);
+				break;
+			case 2:
+				// DTW Sakoe and LB Keogh
+				indx = dtw_search_sakoe_LB_Keogh(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, all_LBKeoghs, DIM);
+				break;
+			case 3:
+				// DOS initialization
+				initial_indx = nn_findNN_fastNN_depth_only(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance);
+				indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs, DIM);
+				break;
+			case 4:
+				// fastNN initialization
+				initial_indx = nn_findNN_fastNN(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance);
+				indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs, DIM);
+				break;
+			case 5:
+				// Ideal initialization
+				indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs, DIM);
+				break;
+			case 6:
+				// fastNN_limited initialization
+				initial_indx = nn_findNN_fastNN_limited(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance, TH_BACKTRACKINGS);
+				indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs, DIM);
+				break;
+			case 7:
+				// fastNN only
+				indx = nn_findNN_fastNN(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance, TH_BACKTRACKINGS);
+				break;
+			case 8:
+				// DOS only
+				indx = nn_findNN_fastNN_depth_only(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance);
+				break;
+			case 9:
+				// fastNN limited only
+				indx = nn_findNN_fastNN_limited(query_vectors + i*dim2, training_vectors, root, storage, dim, &min_distance, TH_BACKTRACKINGS);
+				break;
+			default:
+				indx = dtw_full_search_initial_estimate(query_vectors + i*dim2, training_vectors, num_of_training_vectors, num_of_points, dim, Cost, &min_distance, r, Ls, Us, initial_indx, all_LBKeoghs, DIM);
+				break;
+			}			
 		}
 		total_time += ((clock() - start_time));
 
@@ -196,7 +245,7 @@ void test_full_search(MY_DOUBLE *training_vectors, int *training_labels, int num
 ****************************** DTW search functions **********************************************
 **************************************************************************************************
 *************************************************************************************************/
-int dtw_full_search_initial_estimate(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, int initial_indx, struct paired *all_LBKeoghs)
+int dtw_full_search_initial_estimate(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, int initial_indx, struct paired *all_LBKeoghs, int DIM)
 {
 	int i;
 	double min_d = 0;
@@ -212,7 +261,7 @@ int dtw_full_search_initial_estimate(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_
 	for (i = 0; i<M; i++)
 	{
 		all_LBKeoghs[i].index = i;
-		all_LBKeoghs[i].signed_distance = (float)apply_LB_Keogh_multi(q, num_of_points, 2, L, U);
+		all_LBKeoghs[i].signed_distance = (float)apply_LB_Keogh_multi(q, num_of_points, DIM, L, U);
 		L += dim2;
 		U += dim2;
 		v += dim2;
@@ -220,7 +269,7 @@ int dtw_full_search_initial_estimate(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_
 
 	v = D;
 
-	min_d = compute_dtw_full_sakoe(D + initial_indx*dim2, q, num_of_points, num_of_points, Cost, r);
+	min_d = compute_dtw_full_sakoe(D + initial_indx*dim2, q, num_of_points, num_of_points, Cost, r, DIM);
 	min_i = initial_indx;
 
 	for (i = 0; i<M; i++)
@@ -234,7 +283,7 @@ int dtw_full_search_initial_estimate(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_
 			continue;
 		}
 
-		d = compute_dtw_full_sakoe(D + all_LBKeoghs[i].index * dim2, q, num_of_points, num_of_points, Cost, r);
+		d = compute_dtw_full_sakoe(D + all_LBKeoghs[i].index * dim2, q, num_of_points, num_of_points, Cost, r, DIM);
 
 		if (d<min_d)
 		{
@@ -247,7 +296,7 @@ int dtw_full_search_initial_estimate(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_
 	return min_i;
 }
 
-int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance)
+int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int DIM)
 {
 	//find row vector of D with max abs inner product with q
 	//q and row vectors of D are assumed to have unit L2-norm.
@@ -260,13 +309,13 @@ int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int di
 	MY_DOUBLE *v = D;
 	int dim2 = ALIGN(dim, ALIGNMENT / sizeof(MY_DOUBLE));
 
-	min_d = compute_dtw_full(v, q, num_of_points, num_of_points, Cost);
+	min_d = compute_dtw_full(v, q, num_of_points, num_of_points, Cost, DIM);
 	min_i = 0;
 	v += dim2;
 
 	for (i = 1; i<M; i++)
 	{
-		d = compute_dtw_full(v, q, num_of_points, num_of_points, Cost);
+		d = compute_dtw_full(v, q, num_of_points, num_of_points, Cost, DIM);
 
 		if (d<min_d)
 		{
@@ -281,7 +330,7 @@ int dtw_search_full(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int di
 	return min_i;
 }
 
-int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r)
+int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, int DIM)
 {
 	int i;
 	double min_d = 0;
@@ -291,13 +340,13 @@ int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int d
 	int dim2 = ALIGN(dim, ALIGNMENT / sizeof(MY_DOUBLE));
 	double LB_Keogh = 0;
 
-	min_d = compute_dtw_full_sakoe(v, q, num_of_points, num_of_points, Cost, r);
+	min_d = compute_dtw_full_sakoe(v, q, num_of_points, num_of_points, Cost, r, DIM);
 	min_i = 0;
 	v += dim2;
 
 	for (i = 1; i<M; i++)
 	{
-		d = compute_dtw_full_sakoe(v, q, num_of_points, num_of_points, Cost, r);
+		d = compute_dtw_full_sakoe(v, q, num_of_points, num_of_points, Cost, r, DIM);
 
 		if (d<min_d)
 		{
@@ -311,7 +360,7 @@ int dtw_search_sakoe(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int d
 	return min_i;
 }
 
-int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, struct paired *all_LBKeoghs)
+int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_points, int dim, double *Cost, double *min_distance, int r, MY_DOUBLE *Ls, MY_DOUBLE *Us, struct paired *all_LBKeoghs, int DIM)
 {
 	int i;
 	double min_d = 0;
@@ -326,14 +375,14 @@ int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_poin
 	for (i = 0; i<M; i++)
 	{
 		all_LBKeoghs[i].index = i;
-		all_LBKeoghs[i].signed_distance = (float)apply_LB_Keogh_multi(q, num_of_points, 2, L, U);
+		all_LBKeoghs[i].signed_distance = (float)apply_LB_Keogh_multi(q, num_of_points, DIM, L, U);
 		L += dim2;
 		U += dim2;
 		v += dim2;
 	}
 
 
-	min_d = compute_dtw_full_sakoe(D + all_LBKeoghs[0].index * dim2, q, num_of_points, num_of_points, Cost, r);
+	min_d = compute_dtw_full_sakoe(D + all_LBKeoghs[0].index * dim2, q, num_of_points, num_of_points, Cost, r, DIM);
 	min_i = all_LBKeoghs[0].index;
 
 	for (i = 1; i<M; i++)
@@ -345,7 +394,7 @@ int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_poin
 			continue;
 		}
 
-		d = compute_dtw_full_sakoe(D + all_LBKeoghs[i].index * dim2, q, num_of_points, num_of_points, Cost, r);
+		d = compute_dtw_full_sakoe(D + all_LBKeoghs[i].index * dim2, q, num_of_points, num_of_points, Cost, r, DIM);
 
 		if (d<min_d)
 		{
@@ -372,19 +421,19 @@ int dtw_search_sakoe_LB_Keogh(MY_DOUBLE *q, MY_DOUBLE *D, int M, int num_of_poin
 **************************************************************************************************
 *************************************************************************************************/
 
-double compute_dtw_full_sakoe(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *Cost, int r)
+double compute_dtw_full_sakoe(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *Cost, int r, int DIM)
 {
 	double distance = 0;
 	int i, j, dij;
 	double d1, d2, d3;
   
-	Cost[0] = DTW_C(X, 0, Y, 0);
+	Cost[0] = DTW_C(X, 0, Y, 0, DIM);
   
 	for(i=1; i<m; i++)
 	{ // first column
 		if(i<=r)
 		{
-			Cost[i] = Cost[i-1] + DTW_C(X, i, Y, 0);
+			Cost[i] = Cost[i - 1] + DTW_C(X, i, Y, 0, DIM);
 #ifdef DTW_PROFILE
 			num_of_adds += 1;
 #endif
@@ -397,7 +446,7 @@ double compute_dtw_full_sakoe(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *
 	{ // first row
 		if(j<=r)
 		{
-			Cost[m*j] = Cost[m*(j-1)] + DTW_C(Y, j, X, 0);
+			Cost[m*j] = Cost[m*(j - 1)] + DTW_C(Y, j, X, 0, DIM);
 #ifdef DTW_PROFILE
 			num_of_adds += 1;
 #endif
@@ -421,7 +470,7 @@ double compute_dtw_full_sakoe(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *
 				if(d2<0) d2 = d1 + 100;
 				if(d3<0) d3 = d1 + 300;
 			
-				Cost[i + j*m] = DTW_C(X, i, Y, j) + my_min(d1, d2, d3);
+				Cost[i + j*m] = DTW_C(X, i, Y, j, DIM) + my_min(d1, d2, d3);
 #ifdef DTW_PROFILE
 				num_of_adds += 1;
 #endif
@@ -440,17 +489,17 @@ double compute_dtw_full_sakoe(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *
 	return distance;
 }
 
-double compute_dtw_full(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *Cost)
+double compute_dtw_full(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *Cost, int DIM)
 {
 	double distance = 0;
 	int i, j;
 	double d1, d2, d3;
 
-	Cost[0] = DTW_C(X, 0, Y, 0);
+	Cost[0] = DTW_C(X, 0, Y, 0, DIM);
 
 	for (i = 1; i<m; i++)
 	{ // first column
-		Cost[i] = Cost[i - 1] + DTW_C(X, i, Y, 0);
+		Cost[i] = Cost[i - 1] + DTW_C(X, i, Y, 0, DIM);
 #ifdef DTW_PROFILE
 		num_of_adds += 1;
 #endif
@@ -458,7 +507,7 @@ double compute_dtw_full(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *Cost)
 
 	for (j = 1; j<n; j++)
 	{ // first row
-		Cost[m*j] = Cost[m*(j - 1)] + DTW_C(Y, j, X, 0);
+		Cost[m*j] = Cost[m*(j - 1)] + DTW_C(Y, j, X, 0, DIM);
 #ifdef DTW_PROFILE
 		num_of_adds += 1;
 #endif
@@ -477,7 +526,7 @@ double compute_dtw_full(MY_DOUBLE *X, MY_DOUBLE *Y, int m, int n, double *Cost)
 			//d2 = val_at(Cost, i-1, j, m, n);
 			//d3 = val_at(Cost, i, j-1, m, n);
 
-			Cost[i + j*m] = DTW_C(X, i, Y, j) + (double)(my_min(d1, d2, d3));
+			Cost[i + j*m] = DTW_C(X, i, Y, j, DIM) + (double)(my_min(d1, d2, d3));
 #ifdef DTW_PROFILE
 			num_of_adds += 1;
 #endif
@@ -531,20 +580,23 @@ double val_at(double p[], int i, int j, int m, int n)
 	return p[i + j*m];
 }
 
-double DTW_C(MY_DOUBLE x[], int i, MY_DOUBLE y[], int j)
+double DTW_C(MY_DOUBLE x[], int i, MY_DOUBLE y[], int j, int DIM)
 {
-	MY_DOUBLE a = 0, b = 0;
-	
-	a = x[i*2] - y[j*2];
-	b = x[i*2 + 1] - y[j*2 + 1];
-	
+	MY_DOUBLE dist0 = 0.0;
+	double dist = 0.0;
+
+	for (int d = 0; d < DIM; d++){
+		dist0 = x[i*DIM + d] - y[j * DIM + d];
+		dist += dist0*dist0;
+	}
+
 #ifdef DTW_PROFILE
-	num_of_adds += 1;
-	num_of_subs += 2;
-	num_of_muls += 2;
+	num_of_adds += DIM - 1;
+	num_of_subs += DIM;
+	num_of_muls += DIM;
 #endif
 
-	return (double)(a*a + b*b);
+	return dist;
 }
 
 double my_min(double a, double b, double c)
@@ -580,7 +632,7 @@ void create_L_U_signals_multi(MY_DOUBLE *q, int num_of_points, int max_dim, int 
 {
 	int curr_dim;
 
-	for (curr_dim = 0; curr_dim<2; curr_dim++)
+	for (curr_dim = 0; curr_dim<max_dim; curr_dim++)
 	{
 		create_L_U_signals(q, num_of_points, curr_dim, max_dim, r, L, U);
 	}

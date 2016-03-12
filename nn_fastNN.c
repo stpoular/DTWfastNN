@@ -27,15 +27,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <math.h>
 #include "nn_fastNN.h"
 
 
-#ifdef DTW_PROFILE
+//#ifdef DTW_PROFILE
 __int64 num_of_fastNN_adds = 0;
 __int64 num_of_fastNN_subs = 0;
 __int64 num_of_fastNN_muls = 0;
-#endif
+int num_of_backtrackings = 0;
+//#endif
 
 
 
@@ -130,6 +131,30 @@ int nn_findNN_fastNN(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *
 	
 	return max_ind;
 }
+
+
+
+int nn_findNN_fastNN_limited(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance, int TH_BACKTRACKINGS)
+{
+	int max_ind = -1;
+	MY_DOUBLE min_dist[2];
+	double initial_distance = 0;
+	int dim2 = ALIGN(dim, ALIGNMENT / sizeof(MY_DOUBLE));
+
+#ifdef DTW_PROFILE
+	num_of_fastNN_adds = 0;
+	num_of_fastNN_subs = 0;
+	num_of_fastNN_muls = 0;
+	num_of_backtrackings = 0;
+#endif
+
+	max_ind = fast_NN_limited(query_vector, root, clusters, dim, min_dist, TH_BACKTRACKINGS);
+
+	*min_distance = (double)(min_dist[0]); //squared
+
+	return max_ind;
+}
+
 
 
 int nn_findNN_fastNN_depth_only(MY_DOUBLE *query_vector, MY_DOUBLE *clusters, struct node *root, struct context *storage, int dim, double *min_distance)
@@ -258,6 +283,29 @@ void tree_structure(struct node *root, MY_DOUBLE *clusters, int dim, struct cont
 	}
 }
 
+
+int full_search_NN(MY_DOUBLE *vector, MY_DOUBLE *clusters, int num_training_vectors, int dim, MY_DOUBLE *min_dist2)
+{
+	int i;
+	int min_ind;
+	MY_DOUBLE min_dist;
+	MY_DOUBLE dist;
+
+	min_dist = distance2(vector, &clusters[0], dim);
+	min_ind = 0;
+
+	for (i = 1; i < num_training_vectors; i++){
+		dist = distance2(vector, &clusters[i], dim);
+
+		if (dist < min_dist){
+			min_dist = dist;
+			min_ind = i;
+		}
+	}
+	
+	*min_dist2 = min_dist;
+	return min_ind;
+}
 
 
 int fast_NN(MY_DOUBLE *vector, struct node *root, MY_DOUBLE *clusters, int dim, MY_DOUBLE *min_dist2)
@@ -442,6 +490,111 @@ int fast_NN_depth_only(MY_DOUBLE *vector, struct node *root, MY_DOUBLE *clusters
 
 	return min_ind;
 }
+
+
+
+
+
+int fast_NN_limited(MY_DOUBLE *vector, struct node *root, MY_DOUBLE *clusters, int dim, MY_DOUBLE *min_dist2, int TH_BACKTRACKINGS)
+{
+	int i;
+	int min_ind;
+	MY_DOUBLE dist;
+	MY_DOUBLE test_dist;
+	int dim2 = ALIGN(dim, ALIGNMENT / sizeof(MY_DOUBLE));
+
+	if (root->count>FAST_NN_THRESHOLD)
+	{
+		double limit;
+		struct paired *ptr;
+		dist = signed_distance(vector, root->hyperplane, root->c0, dim);
+
+		if (dist <= 0.0)
+		{
+			min_ind = fast_NN_limited(vector, root->left, clusters, dim, min_dist2, TH_BACKTRACKINGS);
+			if (num_of_backtrackings > TH_BACKTRACKINGS) return min_ind;
+
+			limit = min_dist2[1] + dist;
+			i = root->left->count;
+
+
+			for (ptr = &root->pairs[i]; i<root->count && ptr->signed_distance<limit; i++, ptr++)
+			{
+				test_dist = my_distance2(vector, &clusters[ptr->index*dim2], dim, min_dist2[0]);
+
+				if (test_dist<min_dist2[0])
+				{
+					min_dist2[0] = test_dist;
+					min_dist2[1] = (MY_DOUBLE)sqrt(test_dist);
+#ifdef DTW_PROFILE
+					num_of_fastNN_muls++;
+#endif
+					limit = min_dist2[1] + dist;
+					min_ind = ptr->index;
+				}
+				num_of_backtrackings++;
+				if (num_of_backtrackings > TH_BACKTRACKINGS) return min_ind;
+			}
+		}
+		else
+		{
+			min_ind = fast_NN_limited(vector, root->right, clusters, dim, min_dist2, TH_BACKTRACKINGS);
+			if (num_of_backtrackings > TH_BACKTRACKINGS) return min_ind;
+
+			limit = dist - min_dist2[1];
+			i = root->left->count - 1;
+			for (ptr = &root->pairs[i]; i >= 0 && ptr->signed_distance>limit; i--, ptr--)
+			{
+
+				test_dist = my_distance2(vector, &clusters[ptr->index*dim2], dim, min_dist2[0]);
+				if (test_dist<min_dist2[0])
+				{
+					min_dist2[0] = test_dist;
+					min_dist2[1] = (MY_DOUBLE)sqrt(test_dist);
+					limit = dist - min_dist2[1];
+					min_ind = ptr->index;
+#ifdef DTW_PROFILE
+					num_of_fastNN_subs++;
+					num_of_fastNN_muls++;
+#endif
+				}
+
+				num_of_backtrackings++;
+				if (num_of_backtrackings > TH_BACKTRACKINGS) return min_ind;
+			}
+		}
+	}
+	else
+	{
+		min_dist2[0] = distance2(vector, &clusters[root->pairs[0].index*dim2], dim);
+		min_ind = root->pairs[0].index;
+		
+		num_of_backtrackings++;
+		if (num_of_backtrackings > TH_BACKTRACKINGS) return min_ind;
+
+		if (root->count>1)
+		{
+			test_dist = my_distance2(vector, &clusters[root->pairs[1].index*dim2], dim, min_dist2[0]);
+
+			if (test_dist<min_dist2[0])
+			{
+				min_ind = root->pairs[1].index;
+				min_dist2[0] = test_dist;
+			}
+
+			num_of_backtrackings++;
+			if (num_of_backtrackings > TH_BACKTRACKINGS) return min_ind;
+		}
+
+		min_dist2[1] = (MY_DOUBLE)sqrt(min_dist2[0]);
+#ifdef DTW_PROFILE
+		num_of_fastNN_muls++;
+#endif
+	}
+	return min_ind;
+}
+
+
 
 
 
@@ -791,6 +944,7 @@ double kmeans_initialize2_map(struct context *storage, MY_DOUBLE *training, int 
 	}
 	// clusters[0] is the overall centroid
 	max_dist = -1.0;
+	max_ind = 0;
 	for (i = 0; i<num_of_vectors; i++)
 	{
 		min_dist = distance2(&training[map[i].index*dim2], clusters, dim);
