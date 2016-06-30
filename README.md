@@ -123,7 +123,7 @@ This code is provided "as is", please use it at your own risk. You can freely us
 [1] S. Poularakis and I. Katsavounidis, "Initialization of dynamic time warping using tree-based fast Nearest Neighbor," Pattern Recognition Letters, Vol.79, pp.31–37, 2016. <br/>
 Link: http://www.sciencedirect.com/science/article/pii/S016786551630068X  <br />
 
-Other relevant publications:
+Other relevant publications: <br />
 [2] S. Poularakis and I. Katsavounidis, "Low–complexity hand gesture recognition system for continuous streams of digits and letters," IEEE Transactions on Cybernetics PP, 1–1, 2015. <br />
 [3] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang, "Fast tree-structured nearest neighbor encoding for vector quantization," IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996. <br />
 
