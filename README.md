@@ -119,8 +119,11 @@ https://www.dropbox.com/s/98sbxwpbooe17ht/character_trajectories16.zip?dl=0 <br 
 - void NN_free_memory_fastNN(struct node **root, struct context **storage); <br/>
 
 ## License
-This code is provided "as is", please use it at your own risk. You can freely use this code for research purposes, citing [1,2]. <br/>
-[1] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang, "Fast tree-structured nearest neighbor encoding for vector quantization," IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996. <br />
-[2] S. Poularakis and I. Katsavounidis, "Low–complexity hand gesture recognition system for continuous streams of digits and letters," IEEE Transactions on Cybernetics PP, 1–1, 2015.
+This code is provided "as is", please use it at your own risk. You can freely use this code for research purposes, citing [1]. <br/>
+[1] S. Poularakis and I. Katsavounidis, "Initialization of dynamic time warping using tree-based fast Nearest Neighbor," Pattern Recognition Letters, Vol.79, pp.31–37, 2016. <br/>
+Link: http://www.sciencedirect.com/science/article/pii/S016786551630068X  <br />
 
+Other relevant publications:
+[2] S. Poularakis and I. Katsavounidis, "Low–complexity hand gesture recognition system for continuous streams of digits and letters," IEEE Transactions on Cybernetics PP, 1–1, 2015. <br />
+[3] I. Katsavounidis, C.-C.J. Kuo, and Zhen Zhang, "Fast tree-structured nearest neighbor encoding for vector quantization," IEEE Transactions on Image Processing, 5 (2):398 - 404, 1996. <br />
 
